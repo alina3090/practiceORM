@@ -1,0 +1,126 @@
+.\venv\Scripts\activate
+$env:FLASK_APP = "app.py"
+flask --debug run
+
+Задание
+
+1. Выбрать произвольную статистическую информацию о некоторой предметной области (на https://www.kaggle.com/datasets) - объем - не менее 100 записей;
+
+-https://www.kaggle.com/datasets/harshitshankhdhar/imdb-dataset-of-top-1000-movies-and-tv-shows?resource=download
+
+2. Выполнить проектирование базы данных для хранения выбранных статистических данных: описать концептуальную и логическую схему базы данных.
+
+- Movie (название, год выпуска, рейтинг.) Director, Genre название.
+- Связи: Фильм относится к одному режиссеру (1:М). Фильм может иметь несколько жанров (М:М).
+
+3. Подготовить данные для заполнения базы данных в scv формате.
+4. Создать приложение (использовать фреймворк Flask), в котором реализовать модели для для каждой таблицы базы данных, описать связи (использовать ORM). Заполнить базу данных информацией.
+
+- в read.py
+
+5. Реализовать 5 запросов на выборку и группировку данных.
+-в index.py
+
+6. В приложении создать страницу на основе шаблона, на которую вывести :информацию из БД;результаты выполнения 5 запросов на выборку и группировку данных.
+
+
+--------------crud.py-------------
+
+from config import db
+from models import Movie, Director, Genre, movie_genres
+from sqlalchemy import func, desc
+
+
+# 1 Фильмы с рейтингом выше 8.5
+result1 = (db.session.query(
+    Movie.title.label("Название"),
+    Movie.rating.label("Рейтинг")
+    )
+    .select_from(Movie)
+    .filter(Movie.rating > 8.5)
+    .all()
+    )
+#print(result1)
+
+# 2 Самые популярные жанры
+result2 = (db.session.query(
+        Genre.name.label("Название"),
+        func.count(Movie.id).label("Количество")
+        )
+        .join(movie_genres, Genre.id == movie_genres.c.genre_id)
+        .join(Movie, Movie.id == movie_genres.c.movie_id)
+        .group_by(Genre.name)
+        .order_by(func.count(Movie.id).desc())
+        .all()
+)
+#print(result2)
+
+# 3 Средний рейтинг фильмов режиссера
+result3 = (db.session.query(
+    Director.name,
+    func.avg(Movie.rating)
+    )
+   .join(Movie)
+   .group_by(Director.name)
+   .all()
+   )
+#print(result3)
+
+# 4 Режиссеры которые сняли более 5 фильмов
+result4 = (db.session.query(
+    Director.name,
+    func.count(Movie.id)
+    )
+   .join(Movie)
+   .group_by(Director.name)
+   .having(func.count(Movie.id) > 5)
+   .all()
+)
+#print(result4)
+
+# 5 Фильмы после 2000 года, отсортированные по рейтингу у которых жанр Comedy или Drama
+result5 = (db.session.query(
+        Movie.title.label("Название"),
+        Genre.name.label("Жанр"),
+        Movie.year.label("Год"),
+        Movie.rating.label("Рейтинг")
+        )
+        .join(movie_genres, Genre.id == movie_genres.c.genre_id)
+        .join(Movie, Movie.id == movie_genres.c.movie_id)
+        .filter(Movie.year > 1000, Genre.name == 'Comedy' or Genre.name == 'Drama')
+        .all()
+)
+#print(result5)
+
+# 6 вложенный запрос типо вывести все фильмы относящиеся к самым популярным жанрам
+
+# Сначала создаем подзапрос для определения самых популярных жанров
+
+subquery = (db.session.query(
+        Genre.id,
+        func.count(Movie.id).label("count")
+        )
+        .join(movie_genres, Genre.id == movie_genres.c.genre_id)
+        .join(Movie, Movie.id == movie_genres.c.movie_id)
+        .group_by(Genre.id)
+        .order_by(func.count(Movie.id).desc())
+        .limit(3)
+        .subquery()
+)
+
+result6 = (db.session.query(
+        Movie.title,
+        Genre.name.label("genre_name"),
+    )
+    .join(movie_genres, Movie.id == movie_genres.c.movie_id)
+    .join(Genre, Genre.id == movie_genres.c.genre_id)
+    .filter(Genre.id.in_(db.session.query(subquery.c.id)))
+    .group_by(Movie.title, Genre.name)
+    .order_by(Genre.name)
+    .all()
+)
+
+print(result6)
+'''for row in result6:
+    print(f"Фильм: {row.title}, Жанр: {row.genre_name}")'''
+

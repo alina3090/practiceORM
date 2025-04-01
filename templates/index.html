@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+{% from "macros.html" import render_table %}
+<html>
+    <head>
+        <title>IMDb Movies</title>
+        <link rel="stylesheet" href="static/styles.css" />
+    </head>
+    <body>
+        <h1>IMDb Movies</h1>
+
+
+            <h2>Все фильмы</h2>
+            {{ render_table(buildings_head, buildings_body) }}
+
+
+            <h2>Фильмы с рейтингом выше 8.5</h2>
+            {{ render_table(rating_head, rating_body, 'rating-table') }}
+
+
+            <h2>Популярные жанры</h2>
+            {{ render_table(genre_head, genre_body) }}
+
+
+            <h2>Средний рейтинг фильмов режиссера</h2>
+        {{ render_table(avg_rating_head, avg_rating_body) }}
+
+
+            <h2>Режиссеры которые сняли более 5 фильмов</h2>
+        {{ render_table(dir_head, dir_body) }}
+
+
+            <h2>Фильмы > 2000 года Comedy/Drama</h2>
+        {{ render_table(method_5_head, method_5_body) }}
+
+
+            <h2>Фильмы отн. к 3 самым популярным жанрам</h2>
+        {{ render_table(method_6_head, method_6_body) }}
+
+    </body>
+</html>
