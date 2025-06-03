@@ -180,3 +180,4 @@ def update_movie(movie_id, update_data):
     except Exception as e:
         db.session.rollback()
         raise e
+

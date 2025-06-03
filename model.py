@@ -1,5 +1,5 @@
 from config import db
-from app import app
+
 
 movie_genres = db.Table('movie_genres',
     db.Column('movie_id', db.Integer, db.ForeignKey('movie.id')),
@@ -26,7 +26,7 @@ class Genre(db.Model):
     name = db.Column(db.String(30))
 
 
-app.app_context().push()
+'''app.app_context().push()
 
 with app.app_context():
-    db.create_all()
+    db.create_all()'''

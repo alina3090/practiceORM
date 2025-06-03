@@ -1,5 +1,4 @@
-from app import app
-from flask import jsonify, abort, request
+from flask import jsonify, abort, request, Blueprint
 from structures.models import (get_all_movies_with_links,
                                get_movie_by_id,
                                create_movie,
@@ -9,15 +8,16 @@ from structures.models import (get_all_movies_with_links,
                                get_avg_rating_by_year,
                                update_movie)
 
+views = Blueprint("name", __name__)
 
-@app.route('/structures/api/v1/movies/<int:movie_id>', methods=['GET'])
+@views.route('/structures/api/v1/movies/<int:movie_id>', methods=['GET'])
 def get_movie(movie_id):
     movie = get_movie_by_id(movie_id)
     if movie is None:
         abort(404, description="Movie not found")
     return jsonify(movie)
 
-@app.route('/structures/api/v1/movies', methods=['POST'])
+@views.route('/structures/api/v1/movies', methods=['POST'])
 def add_movie():
     if not request.is_json:
         abort(400, description="Request must be JSON")
@@ -35,7 +35,7 @@ def add_movie():
         abort(500, description=str(e))
 
 
-@app.route('/structures/api/v1/movies/<int:movie_id>', methods=['DELETE'])
+@views.route('/structures/api/v1/movies/<int:movie_id>', methods=['DELETE'])
 def delete_movie(movie_id):
     success = delete_movie_from_db(movie_id)
     if not success:
@@ -43,10 +43,9 @@ def delete_movie(movie_id):
     return jsonify({"message": f"Movie with ID {movie_id} deleted successfully"}), 200
 
 
-@app.route('/structures/api/v1/movies', methods=['GET'])
+@views.route('/structures/api/v1/movies', methods=['GET'])
 def get_movies():
     search_param = request.args.get('search', '').upper()
-
     if search_param == 'MAXRATING':
         movies = get_movies_max_rating_by_year()
         return jsonify(movies)
@@ -69,7 +68,7 @@ def get_movies():
         })
 
 
-@app.route('/structures/api/v1/movies/<int:movie_id>', methods=['PATCH'])
+@views.route('/structures/api/v1/movies/<int:movie_id>', methods=['PATCH'])
 def update_movie_route(movie_id):  # Измененное имя функции
     if not request.is_json:
         abort(400, description="Request must be JSON")
