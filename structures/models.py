@@ -181,3 +181,16 @@ def update_movie(movie_id, update_data):
         db.session.rollback()
         raise e
 
+def get_full_price_stats_per_category():
+    
+    return (
+        db.session.query(
+            Movie.year,
+            func.max(Movie.rating).label('max_rating'),
+            func.min(Movie.rating).label('min_rating'),
+            func.avg(Movie.rating).label('avg_rating')
+        )
+        .group_by(Movie.year)
+        .order_by(Movie.year)
+        .all()
+    )

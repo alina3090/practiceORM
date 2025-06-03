@@ -6,7 +6,8 @@ from structures.models import (get_all_movies_with_links,
                                get_movies_max_rating_by_year,
                                get_movies_min_rating_by_year,
                                get_avg_rating_by_year,
-                               update_movie)
+                               update_movie,
+                               get_full_price_stats_per_category)
 
 views = Blueprint("name", __name__)
 
@@ -93,3 +94,27 @@ def update_movie_route(movie_id):  # Измененное имя функции
         })
     except Exception as e:
         abort(400, description=str(e))
+
+
+@views.route("/stats/<group_by>", methods=["GET"])
+def get_full_price_stats(group_by):
+    if group_by == 'year':
+        data = get_full_price_stats_per_category()
+        key_name = 'year'
+        response_key = 'year'
+    
+    else:
+        return jsonify({"error": "Invalid group by parameter"}), 400
+
+    result = {
+        f"stats": [
+            {
+                "Группа": getattr(item, key_name),
+                "Минимальный рейтинг": float(item.min_rating),
+                "Средний рейтинг": float(item.avg_rating),
+                "Максимальный рейтинг": float(item.max_rating)
+            } for item in data
+        ]
+    }
+    return jsonify(result)
+

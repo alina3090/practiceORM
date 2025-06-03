@@ -1,6 +1,8 @@
 from flask import Flask, jsonify
 from config import db
+from flask_cors import CORS
 app = Flask(__name__, static_folder="static")
+CORS(app)
 
 # конфигурируем базу данных SQLite в папке instance приложения
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///movies.db"
